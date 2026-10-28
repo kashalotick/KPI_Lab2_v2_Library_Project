@@ -1,0 +1,77 @@
+﻿## ==========================================
+## Build & Output Directories
+## ==========================================
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+out/
+publish/
+
+## ==========================================
+## User-specific & IDE Files
+## ==========================================
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider & Resharper
+.idea/
+*_ReSharper*/
+*.sln.DotSettings.user
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+## ==========================================
+## .NET / C# Tooling & Workfiles
+## ==========================================
+# User secrets (if stored locally)
+secrets.json
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+
+# Coverage & Test Results
+*.coverage
+*.coveragexml
+TestResults/
+BenchmarkDotNet.Artifacts/
+
+## ==========================================
+## Native / OS / Temporary Files
+## ==========================================
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+## ==========================================
+## Environment & Local Settings
+## ==========================================
+.env
+.env.local
+appsettings.Development.json
+appsettings.Local.json
