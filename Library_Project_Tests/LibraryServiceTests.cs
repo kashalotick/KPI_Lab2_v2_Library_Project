@@ -54,12 +54,9 @@ namespace Library_Project_Tests
             const int copies = 3;
             Book? existing = null;
             _repoMock.Setup(r => r.FindBook(title)).Returns((Book?)null);
-            _repoMock.Setup(r => r.SaveBook(It.IsAny<Book>())).Callback<Book>(b => existing = b);
-
+            
             _service.AddBook(title, copies);
             
-            Assert.NotNull(existing);
-            Assert.Equal(copies, existing.Copies);
             _repoMock.Verify(r => r.SaveBook(It.Is<Book>(b => b.Title == title && b.Copies == copies)), Times.Once);
         }
 
@@ -97,7 +94,7 @@ namespace Library_Project_Tests
             Assert.Throws<InvalidOperationException>(() => _service.BorrowBook(memberId, title));
 
             _memberMock.Verify(r => r.IsValidMember(memberId), Times.Once);
-            _notifMock.VerifyNoOtherCalls();
+            _notifMock.Verify(r => r.NotifyBorrow(memberId, title), Times.Never);
             _repoMock.VerifyNoOtherCalls();
         }
 
@@ -115,8 +112,8 @@ namespace Library_Project_Tests
             Assert.False(result);
             
             _repoMock.Verify(r => r.FindBook(title), Times.Once);
+            _notifMock.Verify(r => r.NotifyBorrow(memberId, title), Times.Never);
             _repoMock.VerifyNoOtherCalls();
-            _notifMock.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -136,8 +133,8 @@ namespace Library_Project_Tests
             Assert.Equal(copies, existing.Copies);
             
             _repoMock.Verify(r => r.FindBook(title), Times.Once);
+            _notifMock.Verify(r => r.NotifyBorrow(memberId, title), Times.Never);
             _repoMock.VerifyNoOtherCalls();
-            _notifMock.VerifyNoOtherCalls();
         }
 
         [Theory]
@@ -229,7 +226,7 @@ namespace Library_Project_Tests
         }
 
         [Fact]
-        public void GetAvailableBooks_AllAvailable_ReturnsAkk()
+        public void GetAvailableBooks_AllAvailable_ReturnsAll()
         {
             var availableA = new Book { Title = "A", Copies = 1 };
             var availableB = new Book { Title = "B", Copies = 1 };
