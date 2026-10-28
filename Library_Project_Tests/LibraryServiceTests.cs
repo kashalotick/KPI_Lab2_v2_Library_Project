@@ -33,7 +33,9 @@ namespace Library_Project_Tests
         [InlineData("        ")]
         public void AddBook_EmptyTitle_ThrowsException(string? title)
         {
+            // Arrange
             const int copies = 1;
+            // Act & Assert
             var ex = Assert.Throws<ArgumentException>(() => _service.AddBook(title!, copies));
             Assert.Equal("Title required.", ex.Message);
             _repoMock.Verify(r => r.SaveBook(It.IsAny<Book>()), Times.Never);
@@ -49,7 +51,9 @@ namespace Library_Project_Tests
         [InlineData(-10000)]
         public void AddBook_NonPositiveCopies_ThrowsException(int copies)
         {
+            // Arrange
             const string title = "Test Book";
+            // Act & Assert
             var ex = Assert.Throws<ArgumentException>(() => _service.AddBook(title!, copies));
             Assert.Equal("Copies must be positive.", ex.Message);
             _repoMock.Verify(r => r.SaveBook(It.IsAny<Book>()), Times.Never);
@@ -61,13 +65,16 @@ namespace Library_Project_Tests
         [Fact]
         public void AddBook_NewBook_SaveWithCorrectData()
         {
+            // Arrange
             const string title = "Test Book";
             const int copies = 3;
             Book? existing = null;
             _repoMock.Setup(r => r.FindBook(title)).Returns((Book?)null);
 
+            // Act
             _service.AddBook(title, copies);
 
+            // Assert
             _repoMock.Verify(r => r.SaveBook(It.Is<Book>(b => b.Title == title && b.Copies == copies)), Times.Once);
         }
 
@@ -77,19 +84,20 @@ namespace Library_Project_Tests
         [Fact]
         public void AddBook_ExistingBook_IncreaseCopies()
         {
+            // Arrange
             const string title = "Test Book";
             const int copies = 3;
             const int existingCopies = 2;
             Book? existing = new Book() { Title = title, Copies = existingCopies };
             _repoMock.Setup(r => r.FindBook(title)).Returns(existing);
+            const int expectedCopies = 5;
+            // Act
             _service.AddBook(title, copies);
 
-            const int expectedCopies = 5;
-
+            // Assert
             Assert.NotNull(existing);
             Assert.Equal(expectedCopies, existing.Copies);
             Assert.NotEqual(existingCopies, existing.Copies);
-
             _repoMock.Verify(r => r.SaveBook(existing), Times.Once);
         }
 
@@ -103,13 +111,14 @@ namespace Library_Project_Tests
         [Fact]
         public void BorrowBook_InvalidMember_ThrowsException()
         {
+            // Arrange
             const int memberId = -1;
             const bool isValidMember = false;
             const string title = "Test Book";
             _memberMock.Setup(r => r.IsValidMember(memberId)).Returns(isValidMember);
 
+            // Act & Assert
             Assert.Throws<InvalidOperationException>(() => _service.BorrowBook(memberId, title));
-
             _memberMock.Verify(r => r.IsValidMember(memberId), Times.Once);
             _notifMock.Verify(r => r.NotifyBorrow(memberId, title), Times.Never);
             _repoMock.VerifyNoOtherCalls();
@@ -121,6 +130,7 @@ namespace Library_Project_Tests
         [Fact]
         public void BorrowBook_BookNotExist_ReturnsFalse()
         {
+            // Arrange
             const int memberId = 1;
             const bool isValidMember = true;
             const string title = "Test Book";
@@ -128,9 +138,11 @@ namespace Library_Project_Tests
             _memberMock.Setup(r => r.IsValidMember(memberId)).Returns(isValidMember);
             _repoMock.Setup(r => r.FindBook(title)).Returns(existing!);
 
+            // Act
             var result = _service.BorrowBook(memberId, title);
-            Assert.False(result);
 
+            // Assert
+            Assert.False(result);
             _repoMock.Verify(r => r.FindBook(title), Times.Once);
             _notifMock.Verify(r => r.NotifyBorrow(memberId, title), Times.Never);
             _repoMock.VerifyNoOtherCalls();
@@ -142,6 +154,7 @@ namespace Library_Project_Tests
         [Fact]
         public void BorrowBook_BookHasNoCopies_ReturnsFalse()
         {
+            // Arrange
             const int memberId = 1;
             const bool isValidMember = true;
             const string title = "Test Book";
@@ -150,11 +163,12 @@ namespace Library_Project_Tests
             _memberMock.Setup(r => r.IsValidMember(memberId)).Returns(isValidMember);
             _repoMock.Setup(r => r.FindBook(title)).Returns(existing);
 
+            // Act
             var result = _service.BorrowBook(memberId, title);
 
+            // Assert
             Assert.False(result);
             Assert.Equal(copies, existing.Copies);
-
             _repoMock.Verify(r => r.FindBook(title), Times.Once);
             _notifMock.Verify(r => r.NotifyBorrow(memberId, title), Times.Never);
             _repoMock.VerifyNoOtherCalls();
@@ -171,6 +185,7 @@ namespace Library_Project_Tests
         [InlineData(100, 99)]
         public void BorrowBook_HasBookCopies_ReturnsTrue(int existingCopies, int expectedCopies)
         {
+            // Arrange
             const int memberId = 1;
             const bool isValidMember = true;
             const string title = "Test Book";
@@ -178,12 +193,13 @@ namespace Library_Project_Tests
             _memberMock.Setup(r => r.IsValidMember(memberId)).Returns(isValidMember);
             _repoMock.Setup(r => r.FindBook(title)).Returns(existing);
 
+            // Act
             var result = _service.BorrowBook(memberId, title);
 
+            // Assert
             Assert.True(result);
             Assert.Equal(expectedCopies, existing.Copies);
             Assert.NotEqual(existingCopies, existing.Copies);
-
             _repoMock.Verify(
                 r => r.SaveBook(It.Is<Book>(b => b.Title == title && b.Copies == expectedCopies)),
                 Times.Once
@@ -201,12 +217,16 @@ namespace Library_Project_Tests
         [Fact]
         public void ReturnBook_BookNotExist_ReturnsFalse()
         {
+            // Arrange
             const int memberId = 1;
             const string title = "Test Book";
             Book? existing = null;
             _repoMock.Setup(r => r.FindBook(title)).Returns(existing!);
 
+            // Act
             var result = _service.ReturnBook(memberId, title);
+
+            // Assert
             Assert.False(result);
         }
 
@@ -247,9 +267,12 @@ namespace Library_Project_Tests
         [Fact]
         public void GetAvailableBooks_NoBooks_ReturnsEmpty()
         {
+            // Arrange
             _repoMock.Setup(r => r.GetAllBooks()).Returns(new List<Book> { });
 
+            // Act
             var result = _service.GetAvailableBooks();
+            // Assert
             Assert.Empty(result);
         }
 
@@ -259,11 +282,14 @@ namespace Library_Project_Tests
         [Fact]
         public void GetAvailableBooks_AllBorrowed_ReturnsEmpty()
         {
+            // Arrange
             var unavailableA = new Book { Title = "A", Copies = 0 };
             var unavailableB = new Book { Title = "B", Copies = 0 };
             _repoMock.Setup(r => r.GetAllBooks()).Returns([unavailableA, unavailableB]);
 
+            // Act
             var result = _service.GetAvailableBooks();
+            // Assert
             Assert.Empty(result);
         }
 
@@ -273,12 +299,15 @@ namespace Library_Project_Tests
         [Fact]
         public void GetAvailableBooks_AllAvailable_ReturnsAll()
         {
+            // Arrange
             var availableA = new Book { Title = "A", Copies = 1 };
             var availableB = new Book { Title = "B", Copies = 1 };
             _repoMock.Setup(r => r.GetAllBooks()).Returns([availableA, availableB]);
 
+            // Act
             var result = _service.GetAvailableBooks();
 
+            // Assert
             Assert.NotEmpty(result);
             Assert.Equal(2, result.Count);
             Assert.Contains(availableA, result);
@@ -291,12 +320,15 @@ namespace Library_Project_Tests
         [Fact]
         public void GetAvailableBooks_Mixed_ReturnsOnlyBooksWithCopies()
         {
+            // Arrange
             var available = new Book { Title = "A", Copies = 1 };
             var unavailable = new Book { Title = "B", Copies = 0 };
             _repoMock.Setup(r => r.GetAllBooks()).Returns([available, unavailable]);
 
+            // Act
             var result = _service.GetAvailableBooks();
 
+            // Assert
             Assert.NotEmpty(result);
             Assert.Single(result);
             Assert.Contains(available, result);
